@@ -1,20 +1,19 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from dotenv import dotenv_values
-from pymongo import MongoClient
+from pymongo import AsyncMongoClient
 from routes import router as api_router
+
 config = dotenv_values(".env")
-app = FastAPI()
 
-@app.on_event("startup")
-async def startup_event():
-    app.mongodb_client = MongoClient(config["MONGODB_URI"])
-    app.mongodb = app.mongodb_client[config["MONGODB"]]
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    app.mongodb_client.close()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    client = AsyncMongoClient(config["MONGODB_URI"])
+    app.state.mongodb = client[config["MONGODB"]]
+    yield
+    await client.close()
 
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(api_router, prefix="/api")
-
-
-

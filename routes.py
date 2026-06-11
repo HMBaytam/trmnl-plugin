@@ -13,13 +13,13 @@ def register_collection(*, collection: str, list_path: str, item_path: str, labe
     @router.get(list_path, response_model=List[str],
                 response_description=f"List of all {label}s ids")
     async def list_ids(request: Request):
-        cursor = request.app.mongodb[collection].find({}, {"_id": 1}, limit=100)
-        return [str(doc["_id"]) for doc in cursor]
+        cursor = request.app.state.mongodb[collection].find({}, {"_id": 1}, limit=100)
+        return [str(doc["_id"]) async for doc in cursor]
 
     @router.get(item_path, response_model=model,
                 response_description=f"Get a single {label}")
     async def find_item(id: str, request: Request):
-        if (item := request.app.mongodb[collection].find_one({"_id": ObjectId(id)})) is not None:
+        if (item := await request.app.state.mongodb[collection].find_one({"_id": ObjectId(id)})) is not None:
             return item
         raise HTTPException(status_code=404, detail=f"{label} {id} not found")
 
@@ -34,7 +34,8 @@ register_collection(collection="rituals",  list_path="/rituals",  item_path="/ri
 async def random_bundle(request: Request):
     bundle = []
     for collection in COLLECTIONS:
-        docs = list(request.app.mongodb[collection].aggregate([{"$sample": {"size": 1}}]))
+        cursor = await request.app.state.mongodb[collection].aggregate([{"$sample": {"size": 1}}])
+        docs = await cursor.to_list(length=1)
         if not docs:
             raise HTTPException(status_code=404, detail=f"No documents in {collection}")
         bundle.append(docs[0])
