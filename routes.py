@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Body, Request, Response, HTTPException, status
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Request, HTTPException
 from typing import List
 from bson import ObjectId
 
@@ -7,38 +6,19 @@ from models import BarakahCard
 
 router = APIRouter()
 
-@router.get("/values", response_description="List of all Barakah Values", response_model=List[BarakahCard])
-async def list_values(request: Request):
-    values = list( request.app.mongodb["values"].find(limit=100))
-    return values
+def register_collection(*, collection: str, list_path: str, item_path: str, label: str):
+    @router.get(list_path, response_model=List[BarakahCard],
+                response_description=f"List of all {label}s")
+    async def list_items(request: Request):
+        return list(request.app.mongodb[collection].find(limit=100))
 
-@router.get("/value/{id}", response_description="Get a single Barakah Value", response_model=BarakahCard)
-async def find_value(id: str, request: Request):
-    if (value := request.app.mongodb["values"].find_one({"_id": ObjectId(id)})) is not None:
-        return value
+    @router.get(item_path, response_model=BarakahCard,
+                response_description=f"Get a single {label}")
+    async def find_item(id: str, request: Request):
+        if (item := request.app.mongodb[collection].find_one({"_id": ObjectId(id)})) is not None:
+            return item
+        raise HTTPException(status_code=404, detail=f"{label} {id} not found")
 
-    raise HTTPException(status_code=404, detail=f"Value {id} not found")
-
-@router.get("/mindsets", response_description="List of all Barakah Values", response_model=List[BarakahCard])
-async def list_values(request: Request):
-    values = list( request.app.mongodb["mindsets"].find(limit=100))
-    return values
-
-@router.get("/mindset/{id}", response_description="Get a single Barakah Value", response_model=BarakahCard)
-async def find_value(id: str, request: Request):
-    if (value := request.app.mongodb["mindsets"].find_one({"_id": ObjectId(id)})) is not None:
-        return value
-
-    raise HTTPException(status_code=404, detail=f"Value {id} not found")
-
-@router.get("/rituals", response_description="List of all Barakah Values", response_model=List[BarakahCard])
-async def list_values(request: Request):
-    values = list( request.app.mongodb["rituals"].find(limit=100))
-    return values
-
-@router.get("/ritual/{id}", response_description="Get a single Barakah Value", response_model=BarakahCard)
-async def find_value(id: str, request: Request):
-    if (value := request.app.mongodb["rituals"].find_one({"_id": ObjectId(id)})) is not None:
-        return value
-
-    raise HTTPException(status_code=404, detail=f"Value {id} not found")
+register_collection(collection="values",   list_path="/values",   item_path="/value/{id}",   label="Value")
+register_collection(collection="mindsets", list_path="/mindsets", item_path="/mindset/{id}", label="Mindset")
+register_collection(collection="rituals",  list_path="/rituals",  item_path="/ritual/{id}",  label="Ritual")
