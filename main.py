@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from pymongo import AsyncMongoClient
 
 from config import settings
-from routes import router as api_router
+from barakah import router as barakah_router
 
 # Reuse uvicorn's logger so app logs share its handler/format and go to stdout
 # (no extra root handler -> no duplicate lines).
@@ -20,12 +20,23 @@ async def lifespan(app: FastAPI):
     await client.close()
 
 
-app = FastAPI(lifespan=lifespan)
+tags_metadata = [
+    {
+        "name": "General",
+        "description": "Service-level endpoints such as health checks.",
+    },
+    {
+        "name": "Barakah Cards",
+        "description": "Browse and fetch Barakah values, mindsets, and rituals.",
+    },
+]
+
+app = FastAPI(lifespan=lifespan, openapi_tags=tags_metadata)
 
 
-@app.get("/health")
+@app.get("/health", tags=["General"])
 async def health():
     return {"status": "ok"}
 
 
-app.include_router(api_router, prefix="/barakah")
+app.include_router(barakah_router, prefix="/barakah", tags=["Barakah Cards"])
