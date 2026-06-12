@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv
+__pycache__/
+*.py[oc]
+.env
+.python-version
+documents/
+README.md
+*.md
+.claude/
