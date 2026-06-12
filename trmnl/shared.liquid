@@ -1,0 +1,82 @@
+{% comment %}
+  TRMNL Private Plugin — Barakah — SHARED markup.
+  Paste into the dashboard's "Shared" tab. TRMNL prepends this to every layout
+  before rendering, so these styles apply to both full and half layouts.
+
+  NOTE (verify on a real device): Arabic glyphs depend on the web font below
+  loading in TRMNL's headless renderer. If Arabic shows as tofu (boxes), the
+  font didn't load — either self-host the woff2 or switch to the English-only
+  fallback by setting --barakah-show-arabic to "none" (see .barakah-arabic).
+{% endcomment %}
+
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" />
+
+<style>
+  /* ---- Bands: stacked Value / Mindset / Ritual ---- */
+  .barakah-bands {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 6px;
+  }
+  .barakah-band {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4px 2px;
+    border-bottom: 2px solid #000;
+    min-height: 0;
+  }
+  .barakah-band:last-child { border-bottom: 0; }
+
+  .barakah-band__head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .barakah-kind {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex: 0 0 auto;
+  }
+  .barakah-name {
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  /* ---- Arabic ---- */
+  .barakah-arabic {
+    font-family: "Amiri", serif;
+    font-size: 26px;
+    line-height: 1.4;
+    direction: rtl;
+    /* Flip to "none" for an English-only fallback if glyphs don't render: */
+    display: var(--barakah-show-arabic, block);
+  }
+  .barakah-arabic--inline {
+    font-size: 22px;
+    display: var(--barakah-show-arabic, inline-block);
+    margin-left: 8px;
+  }
+
+  /* ---- Description ---- */
+  .barakah-desc {
+    line-height: 1.25;
+    /* Keep long descriptions from overflowing a band on the full layout. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ---- Compact (half_horizontal) ---- */
+  .barakah-bands--compact { gap: 2px; }
+  .barakah-band--compact {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    padding: 2px;
+  }
+</style>

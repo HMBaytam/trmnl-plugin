@@ -1,0 +1,59 @@
+{% comment %}
+  TRMNL Private Plugin — Barakah daily trio — FULL layout (800x480).
+  Paste into the dashboard's "Full" layout tab.
+
+  Shared styles (Arabic @font-face, .barakah-* classes) live in shared.liquid,
+  which TRMNL prepends to every layout before rendering.
+
+  Data from GET /barakah/daily:
+    { date, value:{name,arabic,description}, mindset:{...}, ritual:{...} }
+{% endcomment %}
+
+<div class="screen">
+  <div class="view view--full">
+    <div class="layout">
+      <div class="barakah-bands">
+
+        <div class="barakah-band">
+          <div class="barakah-band__head">
+            <span class="label label--underline barakah-kind">Value</span>
+            <span class="title barakah-name">{{ value.name }}</span>
+          </div>
+          {% if value.arabic and value.arabic != "" %}
+            <div class="barakah-arabic" dir="rtl" lang="ar">{{ value.arabic }}</div>
+          {% endif %}
+          <div class="content barakah-desc">{{ value.description }}</div>
+        </div>
+
+        <div class="barakah-band">
+          <div class="barakah-band__head">
+            <span class="label label--underline barakah-kind">Mindset</span>
+            <span class="title barakah-name">{{ mindset.name }}</span>
+          </div>
+          {% if mindset.arabic and mindset.arabic != "" %}
+            <div class="barakah-arabic" dir="rtl" lang="ar">{{ mindset.arabic }}</div>
+          {% endif %}
+          <div class="content barakah-desc">{{ mindset.description }}</div>
+        </div>
+
+        <div class="barakah-band">
+          <div class="barakah-band__head">
+            <span class="label label--underline barakah-kind">Ritual</span>
+            <span class="title barakah-name">{{ ritual.name }}</span>
+          </div>
+          {% if ritual.arabic and ritual.arabic != "" %}
+            <div class="barakah-arabic" dir="rtl" lang="ar">{{ ritual.arabic }}</div>
+          {% endif %}
+          <div class="content barakah-desc">{{ ritual.description }}</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="title_bar">
+      <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
+      <span class="title">Barakah</span>
+      <span class="instance">{{ date }}</span>
+    </div>
+  </div>
+</div>

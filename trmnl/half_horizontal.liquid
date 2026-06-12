@@ -1,0 +1,47 @@
+{% comment %}
+  TRMNL Private Plugin — Barakah daily trio — HALF HORIZONTAL layout.
+  Paste into the dashboard's "Half Horizontal" layout tab.
+
+  Condensed: name + Arabic per item, descriptions clamped short so the trio
+  fits the reduced height when mashed up with other plugins.
+{% endcomment %}
+
+<div class="screen">
+  <div class="view view--half_horizontal">
+    <div class="layout">
+      <div class="barakah-bands barakah-bands--compact">
+
+        <div class="barakah-band barakah-band--compact">
+          <span class="label barakah-kind">Value</span>
+          <span class="title barakah-name">{{ value.name }}</span>
+          {% if value.arabic and value.arabic != "" %}
+            <span class="barakah-arabic barakah-arabic--inline" dir="rtl" lang="ar">{{ value.arabic }}</span>
+          {% endif %}
+        </div>
+
+        <div class="barakah-band barakah-band--compact">
+          <span class="label barakah-kind">Mindset</span>
+          <span class="title barakah-name">{{ mindset.name }}</span>
+          {% if mindset.arabic and mindset.arabic != "" %}
+            <span class="barakah-arabic barakah-arabic--inline" dir="rtl" lang="ar">{{ mindset.arabic }}</span>
+          {% endif %}
+        </div>
+
+        <div class="barakah-band barakah-band--compact">
+          <span class="label barakah-kind">Ritual</span>
+          <span class="title barakah-name">{{ ritual.name }}</span>
+          {% if ritual.arabic and ritual.arabic != "" %}
+            <span class="barakah-arabic barakah-arabic--inline" dir="rtl" lang="ar">{{ ritual.arabic }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <div class="title_bar">
+      <img class="image" src="https://usetrmnl.com/images/plugins/trmnl--render.svg" />
+      <span class="title">Barakah</span>
+      <span class="instance">{{ date }}</span>
+    </div>
+  </div>
+</div>
