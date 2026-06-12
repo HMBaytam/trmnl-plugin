@@ -5,14 +5,12 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_NO_DEV=1 \
     UV_PYTHON_DOWNLOADS=0
 WORKDIR /app
-# Install deps first (cached layer) without the project itself
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project
+# Install deps first (cached layer) without the project itself.
+# Copy only the lock + manifest so this layer is reused unless deps change.
+COPY uv.lock pyproject.toml ./
+RUN uv sync --frozen --no-install-project
 COPY . /app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+RUN uv sync --frozen
 
 # ---- runtime ----
 FROM python:3.13-slim-bookworm
