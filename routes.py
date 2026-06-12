@@ -1,8 +1,17 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 from fastapi import APIRouter, Request, HTTPException
 from typing import List, Union
 from bson import ObjectId
 
-from models import BarakahValue, BarakahMindset, BarakahRitual
+from models import (
+    BarakahValue,
+    BarakahMindset,
+    BarakahRitual,
+    DailyItem,
+    DailyBundle,
+)
 
 router = APIRouter()
 
@@ -40,3 +49,46 @@ async def random_bundle(request: Request):
             raise HTTPException(status_code=404, detail=f"No documents in {collection}")
         bundle.append(docs[0])
     return bundle
+
+
+# response key -> (collection, name field on the document)
+# The name field happens to equal the response key for all three collections.
+DAILY_COLLECTIONS = {
+    "value":   ("values",   "value"),
+    "mindset": ("mindsets", "mindset"),
+    "ritual":  ("rituals",  "ritual"),
+}
+
+
+@router.get("/daily", response_model=DailyBundle,
+            response_description="A trio (value/mindset/ritual) that is stable for the whole day")
+async def daily(request: Request, tz: str = "UTC"):
+    # Resolve the caller's timezone (TRMNL passes trmnl.user.time_zone_iana).
+    # Fall back to UTC for a missing/unknown zone instead of erroring.
+    try:
+        zone = ZoneInfo(tz)
+    except (ZoneInfoNotFoundError, ValueError):
+        zone = ZoneInfo("UTC")
+
+    today = datetime.now(zone).date()
+    ordinal = today.toordinal()  # day counter; +1 each calendar day
+
+    items = {}
+    for offset, (key, (collection, field)) in enumerate(DAILY_COLLECTIONS.items()):
+        # Stable, deterministic ordering: ObjectIds sort by their bytes, so the
+        # same day -> same index -> same document (no $sample randomness).
+        cursor = request.app.state.mongodb[collection].find({}, {"_id": 1})
+        ids = sorted([doc["_id"] async for doc in cursor])
+        if not ids:
+            raise HTTPException(status_code=404, detail=f"No documents in {collection}")
+
+        # Distinct offset per collection so the three don't rotate in lockstep.
+        idx = (ordinal + offset) % len(ids)
+        doc = await request.app.state.mongodb[collection].find_one({"_id": ids[idx]})
+        items[key] = DailyItem(
+            name=doc[field],
+            arabic=doc.get("arabic"),
+            description=doc["description"],
+        )
+
+    return DailyBundle(date=today.isoformat(), **items)
